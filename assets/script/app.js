@@ -19,9 +19,9 @@ var firebase = {
 			playerRef.set({
 				'name': user
 			})
-			selfIndex = 1;
 			userOneExists = true;
 			playerOne = true;
+			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/one');
 
 		} else if (userOneExists && !userTwoExists) {
 			playerRef = ref.child('two');
@@ -29,16 +29,18 @@ var firebase = {
 			playerRef.set({
 				'name': user
 			})
-			selfIndex = 2;
 			userTwoExists = true;
 			playerOne = false;
+			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/two');
 		}
+		disconnectRef.onDisconnect().remove();
 
 		if (userOneExists && userTwoExists) {
 			refFunction.set("choiceBuild")
+		} else {
+			pageBuilder.anotherPlayer();
 		}
 	},
-
 	updateChoice : function(snapshot){
 		playerRef.update({
 			'choice': playerChoice
@@ -56,52 +58,66 @@ var firebase = {
 
 			ref.off("value", firebase.ready);
 			refFunction.set("outcome");
+			console.log('did it once')
 		} else if (!playerOneReady || !playerTwoReady) {
 			pageBuilder.waiting();
 		}	
 	},
 	outcome : function(){
 		if (playerChoice == enemyChoice) {
-			console.log("tie!")
+			var message = "It's a tie! You both chose " + playerChoice + "!"
 		} else if ((playerChoice == "Scissors" && enemyChoice == "Rock") || (playerChoice == "Rock" && enemyChoice == "Paper") || (playerChoice == "Paper" && enemyChoice == "Scissors")) {
-			console.log("You Lose! " + playerChoice + " loses to " + enemyChoice)
+			var message = "You Lose! " + playerChoice + " loses to " + enemyChoice + "!"
 			loses++;
+			debugger;
 				playerRef.update({
 					'loses': loses
 				})
 		} else {
-			console.log("You Win! " + playerChoice + " beats " + enemyChoice)
+			var message = "You Win! " + playerChoice + " beats " + enemyChoice + "!"
 			wins++;
 				playerRef.update({
 					'wins': wins
 				})
 		}
-		setTimeout(firebase.resetGame,5000)
+		pageBuilder.results(message);
+		setTimeout(firebase.resetGame,2000) //So the lag in firebase doesn't screw up my life and cost me a literal dozen hours searching for a bug
 	},
-	resetGame : function(){
-		playerRef.once("value", function(playerSnapshot){
+	resetGame : function(resetAll){
+		playerRef.once("value", function(){
 			playerRef.update({'choice':null})
 		})
-		refFunction.set(null)
-		pageBuilder.choiceBuild();
+		refFunction.set(null);
+		if (resetAll) {
+			playerRef.update({wins:null,loses:null})
+			wins=0;
+			loses=0;
+			setTimeout(pageBuilder.anotherPlayer,5000);
+		} else{
+			setTimeout(pageBuilder.choiceBuild,3000);
+		}	
+	},
+	disconnect : function(){
+
 	}
 }
 
-//TIMER OBJECT
-//==============================================//
-var timer = {
-
-}
 //DOM CONSTRUCTOR
 //==============================================//
 var pageBuilder = {
-	choiceBuild : function(snapshot){
+	choiceBuild : function(){
+		$('#playerOne').empty()
+		$('#playerTwo').empty()
 		choices = $('<div id="choiceContainer"><ul><li class="choice">Rock</li><li class="choice">Paper</li><li class="choice">Scissors</li></ul>');
+		$('#messageboard').html('<h2>Make a choice!</h2>');
 		if (playerOne) {
 			$('#playerOne').append(choices);
 		} else if (!playerOne) {
 			$('#playerTwo').append(choices);
 		}
+	},
+	anotherPlayer : function(){
+		$('#messageboard').html('<h2>Waiting for another player');
 	},
 	waiting : function(){
 		console.log('waiting screen line 76')
@@ -111,6 +127,11 @@ var pageBuilder = {
 		} else if (!playerOne) {
 			$('#playerOne').append(waitingScreen);
 		}
+	},
+	results : function(msg){
+		$('#messageboard').html(msg);
+		$('#playerOne').empty();
+		$('#playerTwo').empty();
 	}
 }
 
@@ -141,12 +162,23 @@ refFunction.on("value", function(functionData){
 				enemy = snapshot.val().one.name;
 			}
 		})
-		pageBuilder.choiceBuild()
+		pageBuilder.choiceBuild();
+		refFunction.set(null)
 	} else if (functionData.val() == "outcome") {
 		console.log("getting there.")
 		firebase.outcome();
 	}
 })
+
+ref.on("child_removed", function(oldChildSnapshot){
+	if (oldChildSnapshot.val().name == enemy) {
+		$('#playerOne').empty();
+		$('#playerTwo').empty();
+		$('#messageboard').html("<h2>" + enemy + " left the game!")
+		firebase.resetGame(true)
+	}
+})
+
 
 
 
