@@ -49,21 +49,53 @@ var firebase = {
 		playerOneReady = snapshot.child('one/choice').exists();
 		playerTwoReady = snapshot.child('two/choice').exists();
 		if (playerOneReady && playerTwoReady) {
-			firebase.outcome();
+			enemyRef.once("value", function(enemyData){
+				enemyChoice = enemyData.val().choice;
+				console.log("Enemy choice was " + enemyChoice)
+			})
+
+			ref.off("value", firebase.ready);
+			refFunction.set("outcome");
 		} else if (!playerOneReady || !playerTwoReady) {
 			pageBuilder.waiting();
 		}	
 	},
 	outcome : function(){
-		console.log('heck ya')
+		if (playerChoice == enemyChoice) {
+			console.log("tie!")
+		} else if ((playerChoice == "Scissors" && enemyChoice == "Rock") || (playerChoice == "Rock" && enemyChoice == "Paper") || (playerChoice == "Paper" && enemyChoice == "Scissors")) {
+			console.log("You Lose! " + playerChoice + " loses to " + enemyChoice)
+			loses++;
+				playerRef.update({
+					'loses': loses
+				})
+		} else {
+			console.log("You Win! " + playerChoice + " beats " + enemyChoice)
+			wins++;
+				playerRef.update({
+					'wins': wins
+				})
+		}
+		setTimeout(firebase.resetGame,5000)
+	},
+	resetGame : function(){
+		playerRef.once("value", function(playerSnapshot){
+			playerRef.update({'choice':null})
+		})
+		refFunction.set(null)
+		pageBuilder.choiceBuild();
 	}
+}
+
+//TIMER OBJECT
+//==============================================//
+var timer = {
 
 }
 //DOM CONSTRUCTOR
 //==============================================//
 var pageBuilder = {
 	choiceBuild : function(snapshot){
-		console.log(refSnapshot.val())
 		choices = $('<div id="choiceContainer"><ul><li class="choice">Rock</li><li class="choice">Paper</li><li class="choice">Scissors</li></ul>');
 		if (playerOne) {
 			$('#playerOne').append(choices);
@@ -72,8 +104,8 @@ var pageBuilder = {
 		}
 	},
 	waiting : function(){
-		console.log('works')
-		var waitingScreen = $('<div id="waitingContainer><h2>Waiting for ' + enemy + ' to pick.</h2></div>')
+		console.log('waiting screen line 76')
+		var waitingScreen = $('<div id="waitingContainer"><h2>Waiting for ' + enemy + ' to pick.</h2></div>')
 		if (playerOne) {
 			$('#playerTwo').append(waitingScreen);
 		} else if (!playerOne) {
@@ -94,17 +126,25 @@ $('#submitUser').submit(function(e){
 
 $(document).on('click', '.choice', function(){
 		playerChoice = $(this).text();
+		console.log("your choice was " + playerChoice)
 		$('#choiceContainer').remove();
 
 		playerRef.once("value", firebase.updateChoice)
-
-		// ref.on("value", areWeReady)
 	})
-// }
 
-refFunction.on("value", function(snapshot){
-	if (snapshot.val() == "choiceBuild") {
+refFunction.on("value", function(functionData){
+	if (functionData.val() == "choiceBuild") {
+		ref.once("value", function(snapshot){
+			if (playerOne) {
+				enemy = snapshot.val().two.name;
+			} else if (!playerOne) {
+				enemy = snapshot.val().one.name;
+			}
+		})
 		pageBuilder.choiceBuild()
+	} else if (functionData.val() == "outcome") {
+		console.log("getting there.")
+		firebase.outcome();
 	}
 })
 
