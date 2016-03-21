@@ -80,6 +80,7 @@ var firebase = {
 					'wins': wins
 				})
 		}
+		pageBuilder.updateScore();
 		pageBuilder.results(message);
 		setTimeout(firebase.resetGame,2000) //So the lag in firebase doesn't screw up my life and cost me a literal dozen hours searching for a bug
 	},
@@ -92,7 +93,7 @@ var firebase = {
 			playerRef.update({wins:null,loses:null})
 			wins=0;
 			loses=0;
-			setTimeout(pageBuilder.anotherPlayer,5000);
+			setTimeout(pageBuilder.anotherPlayer,4000);
 		} else{
 			setTimeout(pageBuilder.choiceBuild,3000);
 		}	
@@ -122,24 +123,25 @@ var pageBuilder = {
 	waiting : function(){
 		console.log('waiting screen line 76')
 		var waitingScreen = $('<div id="waitingContainer"><h2>Waiting for ' + enemy + ' to pick.</h2></div>')
-		if (playerOne) {
-			$('#playerTwo').append(waitingScreen);
-		} else if (!playerOne) {
-			$('#playerOne').append(waitingScreen);
-		}
+		$('#messageboard').empty().append(waitingScreen);
 	},
 	results : function(msg){
 		$('#messageboard').html(msg);
 		$('#playerOne').empty();
 		$('#playerTwo').empty();
+	},
+	updateScore : function(){
+		scoreboard = $('<h2>Wins: ' + wins + "</h2><h1>" + user + "</h1><h2>loses: " + loses + "</h2>")
+		$('#user').empty()
+		$('#user').append(scoreboard);
 	}
 }
 
 //MAIN PROCESSES
 //==============================================//
-$('#submitUser').submit(function(e){
+$('#user').submit(function(e){
 	user = $('#newUser').val();
-	$('#submitUser').remove();
+	pageBuilder.updateScore();
 	e.preventDefault();
 
 	ref.once("value", firebase.playerBuild)
@@ -148,8 +150,7 @@ $('#submitUser').submit(function(e){
 $(document).on('click', '.choice', function(){
 		playerChoice = $(this).text();
 		console.log("your choice was " + playerChoice)
-		$('#choiceContainer').remove();
-
+		$('#choiceContainer').remove();		
 		playerRef.once("value", firebase.updateChoice)
 	})
 
