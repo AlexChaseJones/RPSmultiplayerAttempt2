@@ -2,11 +2,13 @@
 //==============================================//
 var ref = new Firebase("https://intense-torch-3574.firebaseio.com/");
 var refFunction = new Firebase("https://intense-torch-3574.firebaseio.com/function")
+var refComments = new Firebase("https://intense-torch-3574.firebaseio.com/comments")
 var user = undefined;
 var enemy = undefined;
 var wins = 0;
 var loses = 0;
 
+$("#submitComment :input").prop("disabled", true);
 //FIREBASE METHOD OBJECT
 //==============================================//
 var firebase = {
@@ -34,6 +36,7 @@ var firebase = {
 			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/two');
 		}
 		disconnectRef.onDisconnect().remove();
+
 
 		if (userOneExists && userTwoExists) {
 			refFunction.set("choiceBuild")
@@ -69,7 +72,6 @@ var firebase = {
 		} else if ((playerChoice == "Scissors" && enemyChoice == "Rock") || (playerChoice == "Rock" && enemyChoice == "Paper") || (playerChoice == "Paper" && enemyChoice == "Scissors")) {
 			var message = "You Lose! " + playerChoice + " loses to " + enemyChoice + "!"
 			loses++;
-			debugger;
 				playerRef.update({
 					'loses': loses
 				})
@@ -154,14 +156,38 @@ $(document).on('click', '.choice', function(){
 		playerRef.once("value", firebase.updateChoice)
 	})
 
+$('#submitComment').submit(function(e) {
+	newComment = $('#newComment').val();
+	$('#newComment').val('');
+	e.preventDefault();
+	refComments.once("value", function(){
+		refComments.push({
+			comment: newComment
+		})
+	})
+})
+
+refComments.on("child_added", function(childSnapshot){
+	userComment = childSnapshot.val().comment;
+	commentParagraph = $('<p>').append(userComment);
+	$('#comments').append(commentParagraph);
+})
+
 refFunction.on("value", function(functionData){
 	if (functionData.val() == "choiceBuild") {
+		$("#submitComment :input").prop("disabled", false);
 		ref.once("value", function(snapshot){
 			if (playerOne) {
 				enemy = snapshot.val().two.name;
 			} else if (!playerOne) {
 				enemy = snapshot.val().one.name;
 			}
+			enemyRef.on("child_added", function(enemySnapshot){
+				if (enemy == enemySnapshot.val()) {
+					$('#comments').empty();
+					$('#comments').append("<h3 class='systemInfo'>" + enemySnapshot.val() + " has joined the Game</h3>")
+				}
+			})
 		})
 		pageBuilder.choiceBuild();
 		refFunction.set(null)
@@ -173,13 +199,13 @@ refFunction.on("value", function(functionData){
 
 ref.on("child_removed", function(oldChildSnapshot){
 	if (oldChildSnapshot.val().name == enemy) {
+		$("#submitComment :input").prop("disabled", true);
 		$('#playerOne').empty();
 		$('#playerTwo').empty();
+		$('#comments').append("<h3 class='systemInfo'>" + enemy + " has disconnected.</h3>");
+		refComments.set(null);
 		$('#messageboard').html("<h2>" + enemy + " left the game!")
 		firebase.resetGame(true)
 	}
 })
-
-
-
 
