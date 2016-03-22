@@ -36,6 +36,19 @@ body {
 	float: left;
 }
 
+#messageboard {
+	text-align: center;
+	display: flex;
+	align-items: center;
+}
+
+#messageboard h2{
+	width: 200px;
+	margin: 0 auto;
+	font-size: 3em;
+	
+}
+
 .clearfix {
 	clear: both;
 }

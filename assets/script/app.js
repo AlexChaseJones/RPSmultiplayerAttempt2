@@ -56,27 +56,25 @@ var firebase = {
 		if (playerOneReady && playerTwoReady) {
 			enemyRef.once("value", function(enemyData){
 				enemyChoice = enemyData.val().choice;
-				console.log("Enemy choice was " + enemyChoice)
 			})
 
 			ref.off("value", firebase.ready);
 			refFunction.set("outcome");
-			console.log('did it once')
 		} else if (!playerOneReady || !playerTwoReady) {
 			pageBuilder.waiting();
 		}	
 	},
 	outcome : function(){
 		if (playerChoice == enemyChoice) {
-			var message = "It's a tie! You both chose " + playerChoice + "!"
+			var message = "<h2>It's a tie! You both chose " + playerChoice + "!</h2>"
 		} else if ((playerChoice == "Scissors" && enemyChoice == "Rock") || (playerChoice == "Rock" && enemyChoice == "Paper") || (playerChoice == "Paper" && enemyChoice == "Scissors")) {
-			var message = "You Lose! " + playerChoice + " loses to " + enemyChoice + "!"
+			var message = "<h2>You Lose! " + playerChoice + " loses to " + enemyChoice + "!</h2>"
 			loses++;
 				playerRef.update({
 					'loses': loses
 				})
 		} else {
-			var message = "You Win! " + playerChoice + " beats " + enemyChoice + "!"
+			var message = "<h2>You Win! " + playerChoice + " beats " + enemyChoice + "!</h2>"
 			wins++;
 				playerRef.update({
 					'wins': wins
@@ -99,9 +97,6 @@ var firebase = {
 		} else{
 			setTimeout(pageBuilder.choiceBuild,3000);
 		}	
-	},
-	disconnect : function(){
-
 	}
 }
 
@@ -124,17 +119,15 @@ var pageBuilder = {
 		}
 	},
 	anotherPlayer : function(){
-		$('#messageboard').html('<h2>Waiting for another player');
+		$('#messageboard').html('<h2>Waiting for another player</h2>');
 	},
 	waiting : function(){
-		console.log('waiting screen line 76')
-		var waitingScreen = $('<div id="waitingContainer"><h2>Waiting for ' + enemy + ' to pick.</h2></div>')
-		$('#messageboard').empty().append(waitingScreen);
+		$('#messageboard').empty().append('<h2>Waiting for ' + enemy + ' to pick.</h2>');
 	},
 	results : function(msg){
 		$('#messageboard').html(msg);
-		$('#playerOne').empty();
-		$('#playerTwo').empty();
+		// $('#playerOne').empty();
+		// $('#playerTwo').empty();	//SDFKLKASJFLKADSKJFASLFJDSAKFJSDFJSDLFJSDKFJDSFJ RIGHT HERE
 	},
 	updateScore : function(){
 		scoreboard = $('<h2 id="wins">Wins: ' + wins + '</h2><h1>' + user + '</h1><h2 id="loses">loses: ' + loses + '</h2>')
@@ -156,8 +149,7 @@ $('#user').submit(function(e){
 $(document).on('click', '.choice', function(){
 		$(target).css('background-color', 'rgba(0,0,0,.5')
 		playerChoice = $(this).text();
-		console.log("your choice was " + playerChoice)
-		$('#choiceContainer').remove();		
+		console.log("your choice was " + playerChoice)	
 		playerRef.once("value", firebase.updateChoice)
 	})
 
@@ -197,7 +189,6 @@ refFunction.on("value", function(functionData){
 		pageBuilder.choiceBuild();
 		refFunction.set(null)
 	} else if (functionData.val() == "outcome") {
-		console.log("getting there.")
 		firebase.outcome();
 	}
 })
