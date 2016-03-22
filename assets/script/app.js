@@ -111,12 +111,16 @@ var pageBuilder = {
 	choiceBuild : function(){
 		$('#playerOne').empty()
 		$('#playerTwo').empty()
-		choices = $('<div id="choiceContainer"><ul><li class="choice">Rock</li><li class="choice">Paper</li><li class="choice">Scissors</li></ul>');
+		
 		$('#messageboard').html('<h2>Make a choice!</h2>');
 		if (playerOne) {
-			$('#playerOne').append(choices);
+			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="left">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="right">Scissors</li></ul>');
+			sprite = $('<div class="imageHolder"><div id="leftImageDiv"></div></div>');
+			$('#playerOne').append(choices).append(sprite);
 		} else if (!playerOne) {
-			$('#playerTwo').append(choices);
+			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="right">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="left">Scissors</li></ul>');
+			sprite = $('<div class="imageHolder"><div id="rightImageDiv"></div></div>');
+			$('#playerTwo').append(choices).append(sprite);
 		}
 	},
 	anotherPlayer : function(){
@@ -133,7 +137,7 @@ var pageBuilder = {
 		$('#playerTwo').empty();
 	},
 	updateScore : function(){
-		scoreboard = $('<h2>Wins: ' + wins + "</h2><h1>" + user + "</h1><h2>loses: " + loses + "</h2>")
+		scoreboard = $('<h2 id="wins">Wins: ' + wins + '</h2><h1>' + user + '</h1><h2 id="loses">loses: ' + loses + '</h2>')
 		$('#user').empty()
 		$('#user').append(scoreboard);
 	}
@@ -150,6 +154,7 @@ $('#user').submit(function(e){
 });
 
 $(document).on('click', '.choice', function(){
+		$(target).css('background-color', 'rgba(0,0,0,.5')
 		playerChoice = $(this).text();
 		console.log("your choice was " + playerChoice)
 		$('#choiceContainer').remove();		
@@ -208,4 +213,61 @@ ref.on("child_removed", function(oldChildSnapshot){
 		firebase.resetGame(true)
 	}
 })
+
+//JQUERY LISTENERS FOR CSS CHANGES
+//==============================================//
+
+$(document).on('mouseover', '.choice', function(){
+	move = $(this).data('location');
+	if (move == "left") {
+		$('#leftImageDiv').css('background-position', '-10px 0px');
+		$('#rightImageDiv').css('background-position', '-10px -197px');
+	} else if (move == "right") {
+		$('#leftImageDiv').css('background-position', '-426px 0px');
+		$('#rightImageDiv').css('background-position', '-426px -197px');
+	} else if (move == "center") {
+		$('#leftImageDiv').css('background-position', '-218px 0px');
+		$('#rightImageDiv').css('background-position', '-218px -197px');
+	}
+
+	potentialChoice = $(this).text();
+
+	if (playerOne) {
+		target = $('#playerOne')
+	} else if (!playerOne) {
+		target = $('#playerTwo')
+	}
+
+	if (potentialChoice == "Rock") {
+		(target).css('background-color', 'rgba(26,159,255,.5');
+	} else if (potentialChoice == "Paper") {
+		(target).css('background-color', 'rgba(255,255,24,.5');
+	} else if (potentialChoice == "Scissors") {
+		(target).css('background-color', 'rgba(204,43,40,.5');
+	}
+})
+
+$(document).on('mouseleave', '.choice', function(){
+	$(target).css('background-color', 'rgba(0,0,0,.5')
+})
+
+var time = 3
+backgroundChange = setInterval(function(){
+	if (time==3) {
+		$('body').css('background-color', 'rgba(255,0,0,.1)');
+	} else if (time==2) {
+		$('body').css('background-color', 'rgba(0,255,0,.1)');
+	} else if (time==1) {
+		$('body').css('background-color', 'rgba(0,0,255,.1)');
+		time=4
+	}
+	time--
+},700)
+
+
+
+
+
+
+
 
