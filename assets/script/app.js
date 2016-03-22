@@ -263,13 +263,13 @@ $(document).on('mouseleave', '.choice', function(){ //Changes playerDiv to black
 
 var time = 3
 backgroundChange = setInterval(function(){ //function for the trippy background
-	if (time==3) {
+	if (time==2) {
 		$('body, footer').css('background-color', 'rgba(26,159,255,.1)');
-	} else if (time==2) {
-		$('body, footer').css('background-color', 'rgba(255,255,24,.1)');
 	} else if (time==1) {
+		$('body, footer').css('background-color', 'rgba(255,255,24,.1)');
+	} else if (time==0) {
 		$('body, footer').css('background-color', 'rgba(204,43,40,.1)');
-		time=4
+		time=3
 	}
 	time--
 },700)

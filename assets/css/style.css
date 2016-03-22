@@ -4,7 +4,7 @@
 
 body {
 	font-family: 'Play', sans-serif;
-	transition: background-color 1s	
+	transition: background-color 1s;
 }
 
 #wrapper {
@@ -26,6 +26,7 @@ body {
 	margin: 10px 0px;
 	border-radius: 20px;
 	border:1px solid black;
+	font-size: 1.4em;
 }
 
 #user > h1, #wins, #loses {
