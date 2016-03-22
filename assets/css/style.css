@@ -7,6 +7,9 @@ body {
 	transition: background-color 1s	
 }
 
+#wrapper {
+	min-width: 905px;
+}
 #header {
 	color: white;
 	border:1px solid black;
@@ -168,5 +171,13 @@ body {
 
 .systemInfo {
 	background-color: rgba(0,0,0,.2);
+}
+
+footer {
+	border-top:3px solid black;
+	text-align: center;
+	padding:15px 0;
+	margin-top: 10px;
+	transition: .7s
 }
 

@@ -1,22 +1,22 @@
 //GLOBAL LOCAL VARIABLES//
 //==============================================//
 var ref = new Firebase("https://intense-torch-3574.firebaseio.com/");
-var refFunction = new Firebase("https://intense-torch-3574.firebaseio.com/function")
-var refComments = new Firebase("https://intense-torch-3574.firebaseio.com/comments")
+var refFunction = new Firebase("https://intense-torch-3574.firebaseio.com/function"); //Reference to the function key, used for communication between player systems
+var refComments = new Firebase("https://intense-torch-3574.firebaseio.com/comments");
 var user = undefined;
 var enemy = undefined;
 var wins = 0;
 var loses = 0;
 
-$("#submitComment :input").prop("disabled", true);
-$("#user :input").prop("disabled", true)
+$("#submitComment :input").prop("disabled", true); //Disables adding a comment until player joins game
+$("#user :input").prop("disabled", true) //Disables Joining the game, eneabled after sytem checks if there is a spot open
 //FIREBASE METHOD OBJECT
 //==============================================//
 var firebase = {
 	playerBuild : function(snapshot){
 		userOneExists = snapshot.child('one').exists();
 		userTwoExists = snapshot.child('two').exists();
-		if ((!userOneExists && !userTwoExists) || (!userOneExists && userTwoExists)) {
+		if (!userOneExists) { //Player One build
 			playerRef = ref.child('one');
 			enemyRef = ref.child('two');
 			playerRef.set({
@@ -28,7 +28,7 @@ var firebase = {
 			enemyTarget = $('#playerTwo');
 			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/one');
 
-		} else if (userOneExists && !userTwoExists) {
+		} else if (userOneExists && !userTwoExists) { //Player Two build
 			playerRef = ref.child('two');
 			enemyRef = ref.child('one');
 			playerRef.set({
@@ -44,59 +44,52 @@ var firebase = {
 
 
 		if (userOneExists && userTwoExists) {
-			refFunction.set("choiceBuild")
+			refFunction.set("choiceBuild")	//Updates function key in Firebase. See Main Processes section for info.
 		} else {
 			pageBuilder.anotherPlayer();
 		}
 	},
-	updateChoice : function(snapshot){
-		playerRef.update({
-			'choice': playerChoice
-		})
-		ref.on("value", firebase.ready);
-	},
 	ready : function(snapshot){
 		playerOneReady = snapshot.child('one/choice').exists();
 		playerTwoReady = snapshot.child('two/choice').exists();
-		if (playerOneReady && playerTwoReady) {
+		if (playerOneReady && playerTwoReady) { //If players are both ready
 			enemyRef.once("value", function(enemyData){
-				enemyChoice = enemyData.val().choice;
+				enemyChoice = enemyData.val().choice;	//Get enemy choice
 			})
-
 			ref.off("value", firebase.ready);
-			refFunction.set("outcome");
-		} else if (!playerOneReady || !playerTwoReady) {
+			refFunction.set("outcome"); //Updates function key, see Main processes.
+		} else if (!playerOneReady || !playerTwoReady) { //If either player isnt ready, build a waiting screen.
 			pageBuilder.waiting();
 		}	
 	},
 	outcome : function(){
 		if (playerChoice == enemyChoice) {
-			var message = "<h2>It's a tie! You both chose " + playerChoice + "!</h2>"
+			var message = "<h2>It's a tie!</h2>"
 		} else if ((playerChoice == "Scissors" && enemyChoice == "Rock") || (playerChoice == "Rock" && enemyChoice == "Paper") || (playerChoice == "Paper" && enemyChoice == "Scissors")) {
-			var message = "<h2>You Lose! " + playerChoice + " loses to " + enemyChoice + "!</h2>"
+			var message = "<h2>You Lose!</h2>"
 			loses++;
 				playerRef.update({
 					'loses': loses
 				})
 		} else {
-			var message = "<h2>You Win! " + playerChoice + " beats " + enemyChoice + "!</h2>"
+			var message = "<h2>You Win!</h2>"
 			wins++;
 				playerRef.update({
 					'wins': wins
 				})
 		}
 
-		pageBuilder.updateEnemy();
-		pageBuilder.updateScore();
-		pageBuilder.results(message);
-		setTimeout(firebase.resetGame,2000) //So the lag in firebase doesn't screw up my life and cost me a literal dozen hours searching for a bug
+		pageBuilder.updateEnemy(); //Updates enemy Div
+		pageBuilder.updateScore(); //Updates player score
+		pageBuilder.results(message); //Shows correct message
+		setTimeout(firebase.resetGame,2000) //This timeout is so the lag in firebase doesn't screw up my life and cost me a literal dozen hours searching for a bug
 	},
 	resetGame : function(resetAll){
 		playerRef.once("value", function(){
 			playerRef.update({'choice':null})
 		})
 		refFunction.set(null);
-		if (resetAll) {
+		if (resetAll) { //This is only called if a player disconnects from the game
 			playerRef.update({wins:null,loses:null})
 			wins=0;
 			loses=0;
@@ -114,9 +107,9 @@ var pageBuilder = {
 		$(target).empty()
 		$(enemyTarget).empty()
 		$('#messageboard').html('<h2>Make a choice!</h2>');
-		if (playerOne) {
+		if (playerOne) { //This part is kind of confusing. I wanted to use a sprite image, but the image had all three choices on it, so when I flipped it, the order was flipped too, So (instead of just fixing the image) I gave each choice a data-location attribute to work with.
 			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="left">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="right">Scissors</li></ul><div class="imageHolder"><div id="leftImageDiv"></div></div>');
-		} else if (!playerOne) {
+		} else if (!playerOne) { //The classes "left" "right" and "center" correspond with the appropriate "leftImageDiv" or "rightImageDiv". See the 'jquery listeners for css changes' section for details.
 			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="right">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="left">Scissors</li></ul><div class="imageHolder"><div id="rightImageDiv"></div></div>');
 		}
 		$(target).append(choices)
@@ -165,7 +158,10 @@ $(document).on('click', '.choice', function(){
 	$('.choice').removeClass('choice');
 	$(target).css('background-color', 'rgba(0,0,0,.5')
 	console.log("your choice was " + playerChoice)	
-	playerRef.once("value", firebase.updateChoice)
+	playerRef.update({
+		'choice': playerChoice //Updates player choice
+	})
+	ref.on("value", firebase.ready); //Checks if players are both ready
 })
 
 $('#submitComment').submit(function(e) {
@@ -187,9 +183,9 @@ refComments.on("child_added", function(childSnapshot){
 	$("#comments").scrollTop($("#comments")[0].scrollHeight);
 })
 
-refFunction.on("value", function(functionData){
+refFunction.on("value", function(functionData){	//Listens for function updates. Used to tell all connected players what to do at the same time.
 	if (functionData.val() == "choiceBuild") {
-		$("#submitComment :input").prop("disabled", false);
+		$("#submitComment :input").prop("disabled", false); //Enables commenting button so the now connected players can talk.
 		ref.once("value", function(snapshot){
 			if (playerOne) {
 				enemy = snapshot.val().two.name;
@@ -203,23 +199,23 @@ refFunction.on("value", function(functionData){
 				}
 			})
 		})
-		pageBuilder.choiceBuild();
+		pageBuilder.choiceBuild();	//takes players to the next step so they can choose rock paper or scissors.
 		refFunction.set(null)
-	} else if (functionData.val() == "outcome") {
+	} else if (functionData.val() == "outcome") { //Once function key in database is updated with "outcome" run the outcome function
 		firebase.outcome();
 	}
 })
 
 ref.on("child_removed", function(oldChildSnapshot){
-	if (oldChildSnapshot.val().name == enemy) {
-		$("#submitComment :input").prop("disabled", true);
-		$(target).empty();
+	if (oldChildSnapshot.val().name == enemy) { //This checks if the child removed was your enemy
+		$("#submitComment :input").prop("disabled", true); //disables the chat button
+		$(target).empty();//Clears player div and enemy div
 		$(enemyTarget).empty();
-		$('#comments').append("<h3 class='systemInfo'>" + enemy + " has disconnected.</h3>");
+		$('#comments').append("<h3 class='systemInfo'>" + enemy + " has disconnected.</h3>");//Logs what happened
 		$("#comments").scrollTop($("#comments")[0].scrollHeight);
-		refComments.set(null);
+		refComments.set(null); //Erases firebase log of comments
 		$('#messageboard').html("<h2>" + enemy + " left the game!")
-		firebase.resetGame(true)
+		firebase.resetGame(true)//Resets all game parameters
 	}
 })
 
@@ -237,7 +233,7 @@ ref.once("value", function(snapshot){
 //JQUERY LISTENERS FOR CSS CHANGES
 //==============================================//
 
-$(document).on('mouseover', '.choice', function(){
+$(document).on('mouseover', '.choice', function(){ //Moves the image sprite around to show the right image. 
 	move = $(this).data('location');
 	if (move == "left") {
 		$('#leftImageDiv').css('background-position', '-10px 0px');
@@ -252,27 +248,27 @@ $(document).on('mouseover', '.choice', function(){
 
 	potentialChoice = $(this).text();
 
-	if (potentialChoice == "Rock") {
-		(target).css('background-color', 'rgba(26,159,255,.8');
+	if (potentialChoice == "Rock") {	//For choices background colors
+		(target).css('background-color', 'rgba(26,159,255,.7');
 	} else if (potentialChoice == "Paper") {
-		(target).css('background-color', 'rgba(255,255,24,.8');
+		(target).css('background-color', 'rgba(255,255,24,.7');
 	} else if (potentialChoice == "Scissors") {
-		(target).css('background-color', 'rgba(204,43,40,.8');
+		(target).css('background-color', 'rgba(204,43,40,.7');
 	}
 })
 
-$(document).on('mouseleave', '.choice', function(){
+$(document).on('mouseleave', '.choice', function(){ //Changes playerDiv to black after clicked
 	$(target).css('background-color', 'rgba(0,0,0,.5')
 })
 
 var time = 3
-backgroundChange = setInterval(function(){
+backgroundChange = setInterval(function(){ //function for the trippy background
 	if (time==3) {
-		$('body').css('background-color', 'rgba(255,0,0,.1)');
+		$('body, footer').css('background-color', 'rgba(26,159,255,.1)');
 	} else if (time==2) {
-		$('body').css('background-color', 'rgba(0,255,0,.1)');
+		$('body, footer').css('background-color', 'rgba(255,255,24,.1)');
 	} else if (time==1) {
-		$('body').css('background-color', 'rgba(0,0,255,.1)');
+		$('body, footer').css('background-color', 'rgba(204,43,40,.1)');
 		time=4
 	}
 	time--
