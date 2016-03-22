@@ -1,12 +1,19 @@
+*:focus {
+    outline: none;
+}
+
 body {
 	font-family: 'Play', sans-serif;
-	transition: background-color 1s
+	transition: background-color 1s	
 }
 
 #header {
+	color: white;
 	border:1px solid black;
 	height: 90px;
 	text-align: center;
+	border-bottom:5px solid black;
+	background-color: rgba(0,0,0,.6);
 }
 
 #newUser {
@@ -20,7 +27,7 @@ body {
 
 #user > h1, #wins, #loses {
 	display: inline-block;
-	padding:20px 45px;
+	padding:20px 65px;
 	font-size: 3em;
 }
 
@@ -31,22 +38,25 @@ body {
 
 #playerOne, #messageboard, #playerTwo {
 	min-width: 300px;
-	min-height: 300px;
-	border-top:5px solid black;	
+	min-height: 300px;	
 	float: left;
+	text-align: center;
 }
 
 #messageboard {
-	text-align: center;
 	display: flex;
 	align-items: center;
 }
 
-#messageboard h2{
+#messageboard h2, #playerOne h2, #playerTwo h2{
 	width: 200px;
 	margin: 0 auto;
 	font-size: 3em;
-	
+}
+
+#playerOne h2, #playerTwo h2 {
+	color: white;
+	margin-top: 65px;
 }
 
 .clearfix {
@@ -81,7 +91,7 @@ body {
 	width: 210px;
 }
 
-#leftImageDiv, #rightImageDiv {
+#leftImageDiv, #rightImageDiv, #enemyImageDiv {
 	width: 210px;
 	height: 220px;
 	background: url(../images/sprites.png) no-repeat;
@@ -95,17 +105,68 @@ body {
 	background-position: -10px -197px;
 }
 
+#enemyImageDiv {
+
+}
+
+#enemyMessage {
+	height: 70px;
+	width: 290px
+}
+
+#enemyMessage h4 {
+
+	font-size: 2em;
+	color: white;
+}
+
 #playerOne, #playerTwo {
 	background-color: rgba(0,0,0,.5);
 	transition: background-color 2s;
 }
 
 #commentSection {
-	width: 600px;
+	border-top:5px solid black;
+}
+
+#commentContainer {
 	margin: 0 auto;
+	padding:20px;
+	background-color: rgba(0,0,0,.5);
+	width: 600px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
 }
 
 #comments {
-	min-height: 200px;
-	border:1px solid red;
+	margin: 0 auto;
+	height: 120px;
+	background-color: rgba(255,255,255,.9);
+	overflow-x: wrap; 
+	overflow-y: scroll;
+	box-shadow: 0px 8px 15px 0px black inset;
+	padding-top: 15px;
 }
+
+#comments h3 {
+	padding:  2px 25px;
+	font-size: 1.1em;
+}
+
+#comments p {
+	padding-left: 15px;
+}
+
+#newComment {
+	width: 575px;
+	height: 25px;
+	padding-left: 20px;
+	border-bottom-right-radius: 20px;
+	border-bottom-left-radius: 20px;
+	border:1px solid gray;
+}
+
+.systemInfo {
+	background-color: rgba(0,0,0,.2);
+}
+

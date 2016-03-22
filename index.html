@@ -14,7 +14,7 @@
 	<div>
 		<div id="header">
 			<form id="user">
-				<input type="text" id="newUser" placeholder="Enter Username"></input>
+				<input type="text" id="newUser" placeholder="Enter Username" maxlength="14" minlength="2"></input>
 			</form>
 		</div>
 	</div>
@@ -24,7 +24,7 @@
 			
 		</div>
 		<div id="messageboard">
-			
+			<h2>Enter a user name above to start!</h2>
 		</div>
 		<div id="playerTwo">
 			
@@ -32,13 +32,14 @@
 	</div>
 	<div class="clearfix"></div>
 	<div id="commentSection">
-		<div id="comments">
-			
+		<div id="commentContainer">
+			<div id="comments">
+				
+			</div>
+			<form id="submitComment">
+				<input type="text" id="newComment" placeholder="new comment...."></input>
+			</form>
 		</div>
-		<form id="submitComment">
-			<input type="text" id="newComment"></input>
-			<input type="submit"></input>
-		</form>
 	</div>
 </div>
 

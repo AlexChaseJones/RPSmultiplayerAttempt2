@@ -9,6 +9,7 @@ var wins = 0;
 var loses = 0;
 
 $("#submitComment :input").prop("disabled", true);
+$("#user :input").prop("disabled", true)
 //FIREBASE METHOD OBJECT
 //==============================================//
 var firebase = {
@@ -23,6 +24,8 @@ var firebase = {
 			})
 			userOneExists = true;
 			playerOne = true;
+			target = $('#playerOne');
+			enemyTarget = $('#playerTwo');
 			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/one');
 
 		} else if (userOneExists && !userTwoExists) {
@@ -33,6 +36,8 @@ var firebase = {
 			})
 			userTwoExists = true;
 			playerOne = false;
+			target = $('#playerTwo');
+			enemyTarget = $('#playerOne');
 			disconnectRef = new Firebase('https://intense-torch-3574.firebaseio.com/two');
 		}
 		disconnectRef.onDisconnect().remove();
@@ -80,6 +85,8 @@ var firebase = {
 					'wins': wins
 				})
 		}
+
+		pageBuilder.updateEnemy();
 		pageBuilder.updateScore();
 		pageBuilder.results(message);
 		setTimeout(firebase.resetGame,2000) //So the lag in firebase doesn't screw up my life and cost me a literal dozen hours searching for a bug
@@ -95,7 +102,7 @@ var firebase = {
 			loses=0;
 			setTimeout(pageBuilder.anotherPlayer,4000);
 		} else{
-			setTimeout(pageBuilder.choiceBuild,3000);
+			setTimeout(pageBuilder.choiceBuild,4000);
 		}	
 	}
 }
@@ -104,19 +111,15 @@ var firebase = {
 //==============================================//
 var pageBuilder = {
 	choiceBuild : function(){
-		$('#playerOne').empty()
-		$('#playerTwo').empty()
-		
+		$(target).empty()
+		$(enemyTarget).empty()
 		$('#messageboard').html('<h2>Make a choice!</h2>');
 		if (playerOne) {
-			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="left">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="right">Scissors</li></ul>');
-			sprite = $('<div class="imageHolder"><div id="leftImageDiv"></div></div>');
-			$('#playerOne').append(choices).append(sprite);
+			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="left">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="right">Scissors</li></ul><div class="imageHolder"><div id="leftImageDiv"></div></div>');
 		} else if (!playerOne) {
-			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="right">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="left">Scissors</li></ul>');
-			sprite = $('<div class="imageHolder"><div id="rightImageDiv"></div></div>');
-			$('#playerTwo').append(choices).append(sprite);
+			choices = $('<div id="choiceContainer"><ul><li class="choice" data-location="right">Rock</li><li class="choice" data-location="center">Paper</li><li class="choice" data-location="left">Scissors</li></ul><div class="imageHolder"><div id="rightImageDiv"></div></div>');
 		}
+		$(target).append(choices)
 	},
 	anotherPlayer : function(){
 		$('#messageboard').html('<h2>Waiting for another player</h2>');
@@ -126,13 +129,23 @@ var pageBuilder = {
 	},
 	results : function(msg){
 		$('#messageboard').html(msg);
-		// $('#playerOne').empty();
-		// $('#playerTwo').empty();	//SDFKLKASJFLKADSKJFASLFJDSAKFJSDFJSDLFJSDKFJDSFJ RIGHT HERE
 	},
 	updateScore : function(){
 		scoreboard = $('<h2 id="wins">Wins: ' + wins + '</h2><h1>' + user + '</h1><h2 id="loses">loses: ' + loses + '</h2>')
 		$('#user').empty()
 		$('#user').append(scoreboard);
+	},
+	updateEnemy : function(){
+		enemyImage = $('<div id="enemyMessage"><h4>' + enemy + ' chose ' + enemyChoice + '!</h4></div><div class="imageHolder"><div id="enemyImageDiv"></div></div>')
+		$(enemyTarget).append(enemyImage);
+
+		if (enemyChoice == "Rock") {
+			$('#enemyImageDiv').css('background-position', '-10px 0px');
+		} else if (enemyChoice == "Paper") {
+			$('#enemyImageDiv').css('background-position', '-218px 0px');
+		} else if (enemyChoice == "Scissors") {
+			$('#enemyImageDiv').css('background-position', '-426px 0px');
+		}
 	}
 }
 
@@ -147,14 +160,17 @@ $('#user').submit(function(e){
 });
 
 $(document).on('click', '.choice', function(){
-		$(target).css('background-color', 'rgba(0,0,0,.5')
-		playerChoice = $(this).text();
-		console.log("your choice was " + playerChoice)	
-		playerRef.once("value", firebase.updateChoice)
-	})
+	playerChoice = $(this).text();
+	$('.choice').html(playerChoice);
+	$('.choice').removeClass('choice');
+	$(target).css('background-color', 'rgba(0,0,0,.5')
+	console.log("your choice was " + playerChoice)	
+	playerRef.once("value", firebase.updateChoice)
+})
 
 $('#submitComment').submit(function(e) {
 	newComment = $('#newComment').val();
+	newComment = user + ' : ' + newComment;
 	$('#newComment').val('');
 	e.preventDefault();
 	refComments.once("value", function(){
@@ -168,6 +184,7 @@ refComments.on("child_added", function(childSnapshot){
 	userComment = childSnapshot.val().comment;
 	commentParagraph = $('<p>').append(userComment);
 	$('#comments').append(commentParagraph);
+	$("#comments").scrollTop($("#comments")[0].scrollHeight);
 })
 
 refFunction.on("value", function(functionData){
@@ -196,15 +213,27 @@ refFunction.on("value", function(functionData){
 ref.on("child_removed", function(oldChildSnapshot){
 	if (oldChildSnapshot.val().name == enemy) {
 		$("#submitComment :input").prop("disabled", true);
-		$('#playerOne').empty();
-		$('#playerTwo').empty();
+		$(target).empty();
+		$(enemyTarget).empty();
 		$('#comments').append("<h3 class='systemInfo'>" + enemy + " has disconnected.</h3>");
+		$("#comments").scrollTop($("#comments")[0].scrollHeight);
 		refComments.set(null);
 		$('#messageboard').html("<h2>" + enemy + " left the game!")
 		firebase.resetGame(true)
 	}
 })
 
+ref.once("value", function(snapshot){
+	userOneExists = snapshot.child('one').exists();
+	userTwoExists = snapshot.child('two').exists();
+
+	if (userOneExists && userTwoExists) {
+		$("#messageboard").html('<h2>Game is populated. Try again later</h2>')
+	} else {
+		$("#user :input").prop("disabled", false)
+
+	}
+})
 //JQUERY LISTENERS FOR CSS CHANGES
 //==============================================//
 
@@ -223,18 +252,12 @@ $(document).on('mouseover', '.choice', function(){
 
 	potentialChoice = $(this).text();
 
-	if (playerOne) {
-		target = $('#playerOne')
-	} else if (!playerOne) {
-		target = $('#playerTwo')
-	}
-
 	if (potentialChoice == "Rock") {
-		(target).css('background-color', 'rgba(26,159,255,.5');
+		(target).css('background-color', 'rgba(26,159,255,.8');
 	} else if (potentialChoice == "Paper") {
-		(target).css('background-color', 'rgba(255,255,24,.5');
+		(target).css('background-color', 'rgba(255,255,24,.8');
 	} else if (potentialChoice == "Scissors") {
-		(target).css('background-color', 'rgba(204,43,40,.5');
+		(target).css('background-color', 'rgba(204,43,40,.8');
 	}
 })
 
@@ -254,7 +277,6 @@ backgroundChange = setInterval(function(){
 	}
 	time--
 },700)
-
 
 
 
