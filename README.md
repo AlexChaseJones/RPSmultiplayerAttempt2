@@ -12,4 +12,4 @@
 
 **Most Proud of:** Definitely that I got it working with the comment sections and waiting for players to join and all that jazz. And of course the aesthetics!
 
-## Play it [Here](https://stark-cliffs-51321.herokuapp.com/)
+## Play it [Here](https://stark-cliffs-51321.herokuapp.com/) \(You'll need a friend\)
